@@ -59,6 +59,73 @@ public class Clock extends TextView implements DemoMode {
 
     private int mAmPmStyle = AM_PM_STYLE_GONE;
 
+    public static final int CLOCK_DATE_DISPLAY_GONE = 0;
+    public static final int CLOCK_DATE_DISPLAY_SMALL = 1;
+    public static final int CLOCK_DATE_DISPLAY_NORMAL = 2;
+
+    public static final int CLOCK_DATE_STYLE_REGULAR = 0;
+    public static final int CLOCK_DATE_STYLE_LOWERCASE = 1;
+    public static final int CLOCK_DATE_STYLE_UPPERCASE = 2;
+
+    public static final int FONT_NORMAL = 0;
+    public static final int FONT_ITALIC = 1;
+    public static final int FONT_BOLD = 2;
+    public static final int FONT_BOLD_ITALIC = 3;
+    public static final int FONT_LIGHT = 4;
+    public static final int FONT_LIGHT_ITALIC = 5;
+    public static final int FONT_THIN = 6;
+    public static final int FONT_THIN_ITALIC = 7;
+    public static final int FONT_CONDENSED = 8;
+    public static final int FONT_CONDENSED_ITALIC = 9;
+    public static final int FONT_CONDENSED_BOLD = 10;
+    public static final int FONT_CONDENSED_BOLD_ITALIC = 11;
+    public static final int FONT_MEDIUM = 12;
+    public static final int FONT_MEDIUM_ITALIC = 13;
+
+    protected int mClockDateDisplay = CLOCK_DATE_DISPLAY_GONE;
+    protected int mClockDateStyle = CLOCK_DATE_STYLE_REGULAR;
+    private int mClockFontStyle = FONT_NORMAL;
+    private int mClockFontSize = 14;
+
+    private SettingsObserver mSettingsObserver;
+
+    protected class SettingsObserver extends ContentObserver {
+        SettingsObserver(Handler handler) {
+            super(handler);
+        }
+
+        void observe() {
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUS_BAR_DATE), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUS_BAR_DATE_STYLE), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUS_BAR_DATE_FORMAT), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUSBAR_CLOCK_COLOR), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                    .getUriFor(Settings.System.STATUSBAR_CLOCK_FONT_STYLE), false,
+                    this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.System
+                   .getUriFor(Settings.System.STATUSBAR_CLOCK_FONT_SIZE), false,
+                    this, UserHandle.USER_ALL);
+            updateSettings();
+        }
+
+        @Override
+        public void onChange(boolean selfChange) {
+            updateSettings();
+        }
+    }
+
+    private final Handler handler = new Handler();
+    TimerTask second;
+
     public Clock(Context context) {
         this(context, null);
     }
@@ -205,6 +272,100 @@ public class Clock extends TextView implements DemoMode {
 
         return result;
 
+        mClockFormatString = "";
+
+        mClockDateDisplay = Settings.System.getIntForUser(resolver,
+                Settings.System.STATUS_BAR_DATE, CLOCK_DATE_DISPLAY_GONE,
+                UserHandle.USER_CURRENT);
+        mClockDateStyle = Settings.System.getIntForUser(resolver,
+                Settings.System.STATUS_BAR_DATE_STYLE, CLOCK_DATE_STYLE_REGULAR,
+                UserHandle.USER_CURRENT);
+        mClockFontStyle = Settings.System.getIntForUser(resolver,
+                Settings.System.STATUSBAR_CLOCK_FONT_STYLE, FONT_NORMAL,
+                UserHandle.USER_CURRENT);
+        mClockFontSize = Settings.System.getIntForUser(resolver,
+                Settings.System.STATUSBAR_CLOCK_FONT_SIZE, 14,
+                UserHandle.USER_CURRENT);
+
+        int defaultColor = mContext.getResources().getColor(R.color.status_bar_clock_color);
+        int clockColor = Settings.System.getIntForUser(resolver,
+                Settings.System.STATUSBAR_CLOCK_COLOR, defaultColor,
+                UserHandle.USER_CURRENT);
+        if (clockColor == Integer.MIN_VALUE) {
+            // flag to reset the color
+            clockColor = defaultColor;
+        }
+
+        second = new TimerTask()
+        {
+            @Override
+            public void run()
+             {
+                Runnable updater = new Runnable()
+                  {
+                   public void run()
+                   {
+                       updateClock();
+                   }
+                  };
+                handler.post(updater);
+             }
+        };
+        Timer timer = new Timer();
+        timer.schedule(second, 0, 1001);
+
+        getFontStyle(mClockFontStyle);
+        setTextColor(clockColor);
+        setTextSize(mClockFontSize);
+        updateClock();
+    }
+
+    public void getFontStyle(int font) {
+        switch (font) {
+            case FONT_NORMAL:
+            default:
+                mClockView.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+                break;
+            case FONT_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif", Typeface.ITALIC));
+                break;
+            case FONT_BOLD:
+                mClockView.setTypeface(Typeface.create("sans-serif", Typeface.BOLD));
+                break;
+            case FONT_BOLD_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif", Typeface.BOLD_ITALIC));
+                break;
+            case FONT_LIGHT:
+                mClockView.setTypeface(Typeface.create("sans-serif-light", Typeface.NORMAL));
+                break;
+            case FONT_LIGHT_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif-light", Typeface.ITALIC));
+                break;
+            case FONT_THIN:
+                mClockView.setTypeface(Typeface.create("sans-serif-thin", Typeface.NORMAL));
+                break;
+            case FONT_THIN_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif-thin", Typeface.ITALIC));
+                break;
+            case FONT_CONDENSED:
+                mClockView.setTypeface(Typeface.create("sans-serif-condensed", Typeface.NORMAL));
+                break;
+            case FONT_CONDENSED_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif-condensed", Typeface.ITALIC));
+                break;
+            case FONT_CONDENSED_BOLD:
+                mClockView.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD));
+                break;
+            case FONT_CONDENSED_BOLD_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC));
+                break;
+            case FONT_MEDIUM:
+                mClockView.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+                break;
+            case FONT_MEDIUM_ITALIC:
+                mClockView.setTypeface(Typeface.create("sans-serif-medium", Typeface.ITALIC));
+                break;
+        }
     }
 
     private boolean mDemoMode;

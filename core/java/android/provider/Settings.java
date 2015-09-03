@@ -3553,6 +3553,30 @@ public final class Settings {
          * @hide
          */
         public static final String RECENTS_CLEAR_ALL_DISMISS_ALL = "recents_clear_all_dismiss_all";
+        public static final String STATUSBAR_CLOCK_FONT_SIZE = "statusbar_clock_font_size";
+
+        /**
+         * @hide
+         */
+        public static final String NETWORK_TRAFFIC_STATE = "network_traffic_state";
+
+        /**
+         * Network stats Color style
+         * @hide
+         */
+        public static final String NETWORK_TRAFFIC_COLOR = "network_traffic_color";
+
+        /**
+         * Whether or not to hide the network traffic indicator when there is no activity
+         * @hide
+         */
+        public static final String NETWORK_TRAFFIC_AUTOHIDE = "network_traffic_autohide";
+
+        /**
+         * Network traffic inactivity threshold (default is 10 kBs)
+         * @hide
+         */
+        public static final String NETWORK_TRAFFIC_AUTOHIDE_THRESHOLD = "network_traffic_autohide_threshold";
 
         /**
          * Settings to backup. This is here so that it's in the same place as the settings
