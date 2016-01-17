@@ -32,6 +32,8 @@ import android.content.res.Resources;
 import android.database.ContentObserver;
 import android.graphics.Canvas;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.PorterDuff.Mode;
 import android.graphics.Paint;
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -334,6 +336,8 @@ public class NotificationPanelView extends PanelView implements
             mKeyguardStatusView.setAlpha(1f);
         }
     };
+    // QS alpha
+    private int mQSShadeAlpha;
 
     public NotificationPanelView(Context context, AttributeSet attrs) {
         super(context, attrs);
@@ -537,6 +541,8 @@ public class NotificationPanelView extends PanelView implements
         super.onDetachedFromWindow();
         mSettingsObserver.unobserve();
         mWeatherController.removeCallback(this);
+        setQSBackgroundAlpha();
+        mSettingsObserver = new SettingsObserver(mHandler);
     }
 
     @Override
@@ -2920,6 +2926,19 @@ public class NotificationPanelView extends PanelView implements
         @Override
         public void onAnimationEnd(Animator animator) {
             animationFinished(animator);
+        protected void observe() {
+            super.observe();
+            ContentResolver resolver = mContext.getContentResolver();
+            resolver.registerContentObserver(Settings.System.getUriFor(
+                    Settings.System.QS_QUICK_PULLDOWN), 
+		    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.Secure.STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD),
+                    false, this, UserHandle.USER_ALL);
+            resolver.registerContentObserver(Settings.Secure.getUriFor(
+                    Settings.System.QS_TRANSPARENT_SHADE), 
+		    false, this, UserHandle.USER_ALL);
+            update();
         }
 
         @Override
@@ -2952,6 +2971,25 @@ public class NotificationPanelView extends PanelView implements
 
         private void animationFinished(Animator animator) {
             mLiveLockscreenController.onLiveLockScreenFocusChanged(false);
+        public void update() {
+            ContentResolver resolver = mContext.getContentResolver();
+            mOneFingerQuickSettingsIntercept = Settings.System.getIntForUser(resolver,
+                    Settings.System.QS_QUICK_PULLDOWN, 0, UserHandle.USER_CURRENT);
+            mStatusBarLockedOnSecureKeyguard = Settings.Secure.getIntForUser(
+                    resolver, Settings.Secure.STATUS_BAR_LOCKED_ON_SECURE_KEYGUARD, 1,
+                    UserHandle.USER_CURRENT) == 1;
+            mQSShadeAlpha = Settings.System.getInt(
+                    resolver, Settings.System.QS_TRANSPARENT_SHADE, 255);
+            setQSBackgroundAlpha();
+        }
+    }
+
+    private void setQSBackgroundAlpha() {
+        if (mQsContainer != null) {
+            mQsContainer.getBackground().setAlpha(mQSShadeAlpha);
+        }
+        if (mQsPanel != null) {
+            mQsPanel.setQSShadeAlphaValue(mQSShadeAlpha);
         }
     }
 
