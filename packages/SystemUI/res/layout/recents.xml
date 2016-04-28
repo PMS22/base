@@ -55,3 +55,7 @@
         android:scaleType="fitXY"
         android:src="@drawable/recents_lower_gradient" />
 </FrameLayout>
+        
+		<include layout="@layout/floating_action_button" />
+
+</FrameLayout>
