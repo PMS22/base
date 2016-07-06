@@ -351,22 +351,6 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
         }
     }
 
-    /**
-     * This is called with the full size of the window since we are handling our own insets.
-     */
-    @Override
-    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        int width = MeasureSpec.getSize(widthMeasureSpec);
-        int height = MeasureSpec.getSize(heightMeasureSpec);
-        Rect searchBarSpaceBounds = new Rect();
-
-        int paddingStatusBar = mContext.getResources().getDimensionPixelSize(R.dimen.status_bar_height) / 2;
-
-        final Resources res = getContext().getResources();
-        boolean isLandscape = res.getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
-
-        boolean enableMemDisplay = Settings.System.getInt(mContext.getContentResolver(),
-                    Settings.System.SYSTEMUI_RECENTS_MEM_DISPLAY, 1) == 1;
 
         // Get the search bar bounds and measure the search bar layout
         if (mSearchBar != null) {
@@ -488,63 +472,6 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
                 .start();
     }
 
-    @Override
-    protected void onAttachedToWindow () {
-        super.onAttachedToWindow();
-        mMemText = (TextView) ((View)getParent()).findViewById(R.id.recents_memory_text);
-        mMemBar = (ProgressBar) ((View)getParent()).findViewById(R.id.recents_memory_bar);
-        updateMemoryStatus();
-        mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
-        mClearRecents = ((View)getParent()).findViewById(R.id.clear_recents);
-        mClearRecents.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                dismissAllTasksAnimated();
-            }
-        });
-    }
-
-    private boolean showMemDisplay() {
-        boolean enableMemDisplay = Settings.System.getInt(mContext.getContentResolver(),
-                Settings.System.SYSTEMUI_RECENTS_MEM_DISPLAY, 0) == 1;
-
-        if (!enableMemDisplay) {
-            mMemText.setVisibility(View.GONE);
-            mMemBar.setVisibility(View.GONE);
-            return false;
-        }
-        mMemText.setVisibility(View.VISIBLE);
-        mMemBar.setVisibility(View.VISIBLE);
-
-        updateMemoryStatus();
-        return true;
-    }
-
-    public void updateMemoryStatus() {
-        if (mMemText.getVisibility() == View.GONE
-                || mMemBar.getVisibility() == View.GONE) return;
-
-        MemoryInfo memInfo = new MemoryInfo();
-        mAm.getMemoryInfo(memInfo);
-            int available = (int)(memInfo.availMem / 1048576L);
-            mMemText.setText("Free RAM: " + String.valueOf(available) + "MB");
-            mMemBar.setMax(mTotalMem);
-            mMemBar.setProgress(available);
-    }
-
-    public int getTotalMemory() {
-        int memory = 0;
-        try {
-            final FileReader localFileReader = new FileReader("/proc/meminfo");
-            final BufferedReader localBufferedReader = new BufferedReader(localFileReader, 8192);
-            String str2 = localBufferedReader.readLine(); // meminfo
-            String[] arrayOfString = str2.split("\\s+");
-            memory = Integer.valueOf(arrayOfString[1]).intValue() * 1024;
-            localBufferedReader.close();
-        } catch (IOException e) {
-        }
-        return memory / 1048576;
-    }
-    
     /**
      * This is called with the full size of the window since we are handling our own insets.
      */
