@@ -452,7 +452,7 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
     @Override
     protected void onAttachedToWindow () {
         super.onAttachedToWindow();
-        mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button;
+        mFloatingButton = ((View)getParent()).findViewById(R.id.floating_action_button);
         mClearRecents = ((View)getParent()).findViewById(R.id.clear_recents);
         mClearRecents.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
