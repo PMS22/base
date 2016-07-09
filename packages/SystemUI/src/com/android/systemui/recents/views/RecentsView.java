@@ -15,18 +15,13 @@
  */
 
 package com.android.systemui.recents.views;
-
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.app.ActivityManager;
 import android.app.ActivityOptions;
 import android.app.TaskStackBuilder;
 import android.content.Context;
-import android.content.ContentResolver;
-import android.content.res.Resources;
 import android.content.Intent;
-import android.content.res.Configuration;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Rect;
@@ -46,8 +41,6 @@ import android.view.View;
 import android.view.WindowInsets;
 import android.view.WindowManagerGlobal;
 import android.widget.FrameLayout;
-import android.widget.ProgressBar;
-import android.widget.TextView;
 
 import com.android.internal.logging.MetricsLogger;
 import com.android.systemui.R;
@@ -203,17 +196,6 @@ public class RecentsView extends FrameLayout implements TaskStackView.TaskStackV
             }
         }
         return returnTask;
-    }
-
-    public void dismissAllTasksAnimated() {
-        int childCount = getChildCount();
-        for (int i = 0; i < childCount; i++) {
-            View child = getChildAt(i);
-            if (child != mSearchBar) {
-                TaskStackView stackView = (TaskStackView) child;
-                stackView.dismissAllTasks();
-            }
-        }
     }
 
     /** Launches the focused task from the first stack if possible */

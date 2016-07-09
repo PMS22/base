@@ -218,7 +218,4 @@
   <!-- Path data for landscape battery -->
   <!-- Path data for circle battery -->
   <!-- Weather string format in keyguard -->
-  <!-- The text for the button in the notification window-shade that clears
-       all of the currently visible notifications. [CHAR LIMIT=10]-->
-  <string name="clear_recents">Sluit alle apps</string>
 </resources>
